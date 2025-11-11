@@ -1,0 +1,104 @@
+CREATE DATABASE LibraryDB;
+
+
+USE LibraryDB;
+
+
+CREATE TABLE Books (
+    b_id INT PRIMARY KEY,
+    isbn VARCHAR(20) UNIQUE NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    author VARCHAR(50),
+    genre VARCHAR(30),
+    copies INT CHECK (copies >= 0)
+);
+
+
+CREATE TABLE Members (
+    m_id INT PRIMARY KEY,
+    m_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(15) UNIQUE NOT NULL,
+    join_date DATE DEFAULT (CURRENT_DATE)
+);
+
+
+CREATE TABLE IssuedBooks (
+    issue_id INT PRIMARY KEY,
+    m_id INT,
+    b_id INT,
+    issue_date DATE,
+    due_date DATE,
+    return_date DATE,
+    FOREIGN KEY (m_id) REFERENCES Members(m_id),
+    FOREIGN KEY (b_id) REFERENCES Books(b_id)
+);
+
+
+
+INSERT INTO Books VALUES
+(1, '70777', 'Database System Concepts', 'Silberschatz', 'DBMS', 5),
+(2, '5398', 'Fundamentals of Database Systems', 'Elmasri & Navathe', 'DBMS', 4),
+(3, '3627', 'The C Programming Language', 'Kernighan & Ritchie', 'Programming', 3),
+(4, '7660', 'Designing Data-Intensive Applications', 'Kleppmann', 'Data', 2),
+(5, '30735', 'Let Us C', 'Yashavant Kanetkar', 'Programming', 6);
+
+
+INSERT INTO Members VALUES
+(1, 'Asha Patil', 'asha@library.test', '9876500011', '2025-06-10'),
+(2, 'Rahul Deshmukh', 'rahul@library.test', '9876500022', '2025-07-01'),
+(3, 'Priya Kulkarni', 'priya@library.test', '9876500033', '2025-07-15'),
+(4, 'Vikram Joshi', 'vikram@library.test', '9876500044', '2025-08-05');
+
+
+INSERT INTO IssuedBooks VALUES
+(1, 1, 2, '2025-10-20', '2025-11-03', NULL),
+(2, 1, 5, '2025-09-10', '2025-09-24', '2025-09-20'),
+(3, 2, 1, '2025-10-25', '2025-11-08', NULL),
+(4, 3, 4, '2025-09-15', '2025-09-29', '2025-09-28'),
+(5, 4, 3, '2025-10-01', '2025-10-15', NULL);
+
+
+SELECT m.m_name, b.title
+FROM Members m
+INNER JOIN IssuedBooks i ON m.m_id = i.m_id
+INNER JOIN Books b ON i.b_id = b.b_id;
+
+
+
+
+SELECT m.m_name, b.title
+FROM Members m
+LEFT JOIN IssuedBooks i ON m.m_id = i.m_id
+LEFT JOIN Books b ON i.b_id = b.b_id;
+
+
+
+
+
+SELECT m.m_name, b.title
+FROM Members m
+RIGHT JOIN IssuedBooks i ON m.m_id = i.m_id
+RIGHT JOIN Books b ON i.b_id = b.b_id;
+
+
+
+
+SELECT m.m_name
+FROM Members m
+WHERE m.m_id IN (
+    SELECT i.m_id
+    FROM IssuedBooks i
+    JOIN Books b ON i.b_id = b.b_id
+    WHERE b.author LIKE '%Navathe%'
+);
+
+
+
+SELECT 
+    m.m_name,
+    (SELECT COUNT(*) 
+     FROM IssuedBooks i 
+     WHERE i.m_id = m.m_id) AS books_issued
+FROM Members m;
+
