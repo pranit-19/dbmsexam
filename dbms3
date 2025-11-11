@@ -1,0 +1,56 @@
+CREATE DATABASE BankSystem;
+
+
+USE BankSystem;
+
+
+CREATE TABLE Customer (
+    CustomerID INT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Address VARCHAR(200),
+    Phone VARCHAR(15) UNIQUE,
+    Email VARCHAR(100) UNIQUE
+);
+
+
+CREATE TABLE Account (
+    AccountID INT PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    AccountType VARCHAR(20) CHECK (AccountType IN ('Saving', 'Current', 'Fixed')),
+    Balance DECIMAL(12,2) CHECK (Balance >= 0),
+    CreatedDate DATE DEFAULT (CURRENT_DATE),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID)
+);
+
+CREATE TABLE Transaction (
+    TransactionID INT PRIMARY KEY,
+    AccountID INT NOT NULL,
+    TransactionType VARCHAR(10) CHECK (TransactionType IN ('Credit', 'Debit')),
+    Amount DECIMAL(10,2) CHECK (Amount > 0),
+    TransactionDate DATE DEFAULT (CURRENT_DATE),
+    FOREIGN KEY (AccountID) REFERENCES Account(AccountID)
+);
+
+
+
+CREATE VIEW CustomerAccountView AS
+SELECT 
+    c.Name AS CustomerName,
+    a.AccountID,
+    a.Balance AS CurrentBalance
+FROM 
+    Customer c
+JOIN 
+    Account a ON c.CustomerID = a.CustomerID;
+
+
+
+
+
+CREATE INDEX idx_transaction_date
+ON Transaction(TransactionDate);
+
+
+SHOW INDEX FROM Transaction;
+
+
