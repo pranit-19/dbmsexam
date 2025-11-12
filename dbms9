@@ -1,0 +1,118 @@
+CREATE TABLE Student_Result (
+    stud_id     NUMBER PRIMARY KEY,
+    name        VARCHAR2(30),
+    dept        VARCHAR2(20),
+    total_mark  NUMBER(5)
+);
+
+
+
+INSERT INTO Student_Result VALUES (1, 'Pranit', 'Computer', 950);
+INSERT INTO Student_Result VALUES (2, 'Aditi', 'IT', 875);
+INSERT INTO Student_Result VALUES (3, 'Rohan', 'ENTC', 920);
+INSERT INTO Student_Result VALUES (4, 'Sneha', 'Computer', 890);
+INSERT INTO Student_Result VALUES (5, 'Kiran', 'IT', 800);
+COMMIT;
+
+
+SET SERVEROUTPUT ON;
+--plsql
+
+-- 1) Implicit Cursor: Insert new record and display rows affected
+DECLARE
+    v_rows NUMBER;
+BEGIN
+    INSERT INTO Student_Result VALUES (6, 'Meera', 'ENTC', 910);
+    v_rows := SQL%ROWCOUNT;
+    DBMS_OUTPUT.PUT_LINE('Rows Inserted: ' || v_rows);
+    COMMIT;
+END;
+/
+
+
+
+-- 2) Explicit Cursor: Display name and total marks of each student
+DECLARE
+    v_name Student_Result.name%TYPE;
+    v_marks Student_Result.total_mark%TYPE;
+
+    CURSOR c1 IS
+        SELECT name, total_mark FROM Student_Result;
+BEGIN
+    OPEN c1;
+    LOOP
+        FETCH c1 INTO v_name, v_marks;
+        EXIT WHEN c1%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE('Name: ' || v_name || ' | Total Marks: ' || v_marks);
+    END LOOP;
+    CLOSE c1;
+END;
+/
+
+
+
+
+-- 3) Cursor FOR Loop: Display student details directly
+
+BEGIN
+    FOR stud_rec IN (SELECT stud_id, name, dept, total_mark FROM Student_Result)
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('ID: ' || stud_rec.stud_id || 
+                             ' | Name: ' || stud_rec.name || 
+                             ' | Dept: ' || stud_rec.dept || 
+                             ' | Marks: ' || stud_rec.total_mark);
+    END LOOP;
+END;
+/
+
+
+
+
+-- 4) Parameterized Cursor: Display students by department
+DECLARE
+    CURSOR dept_cur(p_dept VARCHAR2) IS
+        SELECT name, total_mark FROM Student_Result WHERE dept = p_dept;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('--- Students from Computer Department ---');
+    FOR rec IN dept_cur('Computer')
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('Name: ' || rec.name || ' | Marks: ' || rec.total_mark);
+    END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE('--- Students from IT Department ---');
+    FOR rec IN dept_cur('IT')
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('Name: ' || rec.name || ' | Marks: ' || rec.total_mark);
+    END LOOP;
+END;
+/
+
+
+
+--5) Cursor for UPDATE: Increase marks by 10 for Computer Dept students
+DECLARE
+    CURSOR upd_cur IS
+        SELECT total_mark FROM Student_Result
+        WHERE dept = 'Computer'
+        FOR UPDATE;
+
+    v_marks Student_Result.total_mark%TYPE;
+BEGIN
+    FOR rec IN upd_cur LOOP
+        v_marks := rec.total_mark + 10;
+        UPDATE Student_Result
+        SET total_mark = v_marks
+        WHERE CURRENT OF upd_cur;
+    END LOOP;
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Marks updated successfully for Computer department.');
+END;
+/
+
+
+
+SELECT * FROM Student_Result;
+
+
+
+
