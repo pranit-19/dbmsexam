@@ -1,0 +1,91 @@
+SET SERVEROUTPUT ON;
+
+
+CREATE TABLE Borrower (
+    Roll_no     NUMBER PRIMARY KEY,
+    Name        VARCHAR2(50),
+    DateofIssue DATE,
+    NameofBook  VARCHAR2(50),
+    Status      CHAR(1)
+);
+
+
+
+
+CREATE TABLE Fine (
+    Roll_no   NUMBER,
+    FineDate  DATE,
+    Amt       NUMBER(10,2)
+);
+
+
+INSERT INTO Borrower VALUES (101, 'Pranit', TO_DATE('15-OCT-2025','DD-MON-YYYY'), 'DBMS', 'I');
+INSERT INTO Borrower VALUES (102, 'Riya', TO_DATE('01-NOV-2025','DD-MON-YYYY'), 'CN', 'I');
+COMMIT;
+
+
+
+--plsql:
+
+DECLARE
+    v_rollno       Borrower.Roll_no%TYPE := &Roll_no;
+    v_bookname     Borrower.NameofBook%TYPE := '&Book_Name';
+    v_dateofissue  Borrower.DateofIssue%TYPE;
+    v_days         NUMBER;
+    v_fine_amt     NUMBER := 0;
+    v_status       Borrower.Status%TYPE;
+
+    e_already_returned EXCEPTION;
+
+BEGIN
+    -- Fetch details
+    SELECT DateofIssue, Status
+    INTO v_dateofissue, v_status
+    FROM Borrower
+    WHERE Roll_no = v_rollno AND NameofBook = v_bookname;
+
+    -- If already returned
+    IF v_status = 'R' THEN
+        RAISE e_already_returned;
+    END IF;
+
+    -- Calculate no. of days
+    v_days := TRUNC(SYSDATE - v_dateofissue);
+
+    -- Fine calculation
+    IF v_days <= 14 THEN
+        v_fine_amt := 0;
+    ELSIF v_days BETWEEN 15 AND 30 THEN
+        v_fine_amt := v_days * 5;
+    ELSE
+        v_fine_amt := v_days * 50;
+    END IF;
+
+    -- Update status
+    UPDATE Borrower
+    SET Status = 'R'
+    WHERE Roll_no = v_rollno AND NameofBook = v_bookname;
+
+    -- Insert fine record
+    IF v_fine_amt > 0 THEN
+        INSERT INTO Fine (Roll_no, FineDate, Amt)
+        VALUES (v_rollno, SYSDATE, v_fine_amt);
+    END IF;
+
+    -- Output result
+    DBMS_OUTPUT.PUT_LINE('Book Returned Successfully.');
+    DBMS_OUTPUT.PUT_LINE('Total Days: ' || v_days);
+    DBMS_OUTPUT.PUT_LINE('Fine Amount: Rs. ' || v_fine_amt);
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('No record found for given Roll No and Book Name.');
+    WHEN e_already_returned THEN
+        DBMS_OUTPUT.PUT_LINE('Book has already been returned!');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+END;
+/
+
+SELECT * FROM Borrower;
+SELECT * FROM Fine;
