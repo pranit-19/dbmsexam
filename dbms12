@@ -1,0 +1,110 @@
+use LibraryDB
+
+db.createCollection("books")
+
+
+
+db.books.insertMany([
+  {
+    TITLE: "mongodb",
+    DESCRIPTION: "Database for modern applications",
+    BY: "john",
+    URL: "http://mongodb.com",
+    TAGS: ["database", "nosql"],
+    LIKES: 120
+  },
+  {
+    TITLE: "nosql overview",
+    DESCRIPTION: "Introduction to NoSQL databases",
+    BY: "alice",
+    URL: "http://nosql.com",
+    TAGS: ["database", "overview"],
+    LIKES: 75
+  },
+  {
+    TITLE: "nodejs tutorial",
+    DESCRIPTION: "Learn backend using Node.js",
+    BY: "john",
+    URL: "http://nodejs.com",
+    TAGS: ["backend", "javascript"],
+    LIKES: 60
+  },
+  {
+    TITLE: "express guide",
+    DESCRIPTION: "Express framework for Node.js",
+    BY: "emma",
+    URL: "http://express.com",
+    TAGS: ["nodejs", "framework"],
+    LIKES: 45
+  },
+  {
+    TITLE: "react handbook",
+    DESCRIPTION: "Learn frontend development",
+    BY: "mike",
+    URL: "http://react.com",
+    TAGS: ["frontend", "javascript"],
+    LIKES: 90
+  }
+])
+
+
+
+
+db.books.insertOne({
+  TITLE: "angular crash course",
+  DESCRIPTION: "Angular for beginners",
+  BY: "john",
+  URL: "http://angular.com",
+  TAGS: ["frontend", "angular"],
+  LIKES: 50,
+  user_name: "student01",
+  comments: "Very helpful guide"
+})
+
+
+db.books.find({ TITLE: "mongodb" }).pretty()
+
+
+
+db.books.find({
+  $or: [{ BY: "john" }, { TITLE: "mongodb" }]
+}).pretty()
+
+
+db.books.find({
+  $and: [{ TITLE: "mongodb" }, { BY: "john" }]
+}).pretty()
+
+
+db.books.find({ LIKES: { $gt: 10 } }).pretty()
+
+
+db.books.find({
+  $and: [
+    { LIKES: { $gt: 100 } },
+    { $or: [{ TITLE: "mongodb" }, { BY: "john" }] }
+  ]
+}).pretty()
+
+
+db.books.updateOne(
+  { TITLE: "mongodb" },
+  { $set: { TITLE: "mongodb overview" } }
+)
+
+
+
+db.books.deleteOne({ TITLE: "nosql overview" })
+
+
+db.books.find({ BY: "john" }).limit(2).pretty()
+
+
+db.books.find({ BY: "john" }).skip(1).limit(1).pretty()
+
+
+db.books.find().sort({ TITLE: 1 }).pretty()
+
+
+db.books.find().sort({ TITLE: -1 })
+
