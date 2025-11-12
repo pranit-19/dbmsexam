@@ -1,0 +1,67 @@
+CREATE TABLE Books (
+    AccNo       NUMBER PRIMARY KEY,
+    Title       VARCHAR2(50),
+    Author      VARCHAR2(40),
+    Publisher   VARCHAR2(40),
+    Count       NUMBER(3)
+);
+
+
+CREATE TABLE Library_Audit (
+    AccNo       NUMBER,
+    Title       VARCHAR2(50),
+    Author      VARCHAR2(40),
+    Publisher   VARCHAR2(40),
+    Count       NUMBER(3),
+    Action_Type VARCHAR2(20),
+    Action_Date DATE
+);
+
+
+INSERT INTO Books VALUES (101, 'DBMS Concepts', 'Korth', 'McGraw Hill', 5);
+INSERT INTO Books VALUES (102, 'Operating Systems', 'Silberschatz', 'Wiley', 4);
+INSERT INTO Books VALUES (103, 'Computer Networks', 'Tanenbaum', 'Pearson', 6);
+COMMIT;
+
+--plsql
+
+-- BEFORE DELETE Trigger
+
+CREATE OR REPLACE TRIGGER trg_before_delete_books
+BEFORE DELETE ON Books
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit
+    VALUES (:OLD.AccNo, :OLD.Title, :OLD.Author, :OLD.Publisher, :OLD.Count,
+            'DELETE', SYSDATE);
+END;
+/
+
+
+
+-- AFTER UPDATE Trigger
+CREATE OR REPLACE TRIGGER trg_after_update_books
+AFTER UPDATE ON Books
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit
+    VALUES (:NEW.AccNo, :NEW.Title, :NEW.Author, :NEW.Publisher, :NEW.Count,
+            'UPDATE', SYSDATE);
+END;
+/
+
+-- Update operation (AFTER UPDATE Trigger fires)
+UPDATE Books
+SET Count = Count + 1
+WHERE AccNo = 101;
+
+
+-- Delete operation (BEFORE DELETE Trigger fires)
+DELETE FROM Books WHERE AccNo = 103;
+
+COMMIT;
+
+-- Display all records
+SELECT * FROM Books;
+
+SELECT * FROM Library_Audit;
