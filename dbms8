@@ -1,0 +1,71 @@
+CREATE TABLE Stud_Marks (
+    Roll_No NUMBER PRIMARY KEY,
+    Name VARCHAR2(30),
+    Total_Marks NUMBER(5)
+);
+
+
+CREATE TABLE Result (
+    Roll_No NUMBER,
+    Name VARCHAR2(30),
+    Class VARCHAR2(30)
+);
+
+
+
+INSERT INTO Stud_Marks VALUES (1, 'Pranit', 1200);
+INSERT INTO Stud_Marks VALUES (2, 'Aditi', 950);
+INSERT INTO Stud_Marks VALUES (3, 'Rohan', 880);
+INSERT INTO Stud_Marks VALUES (4, 'Sneha', 810);
+INSERT INTO Stud_Marks VALUES (5, 'Kiran', 720);
+
+COMMIT;
+
+--plsql 
+CREATE OR REPLACE PROCEDURE proc_Grade AS
+    v_roll Stud_Marks.Roll_No%TYPE;
+    v_name Stud_Marks.Name%TYPE;
+    v_marks Stud_Marks.Total_Marks%TYPE;
+    v_class VARCHAR2(30);
+    
+    CURSOR stud_cur IS
+        SELECT Roll_No, Name, Total_Marks FROM Stud_Marks;
+BEGIN
+    OPEN stud_cur;
+    LOOP
+        FETCH stud_cur INTO v_roll, v_name, v_marks;
+        EXIT WHEN stud_cur%NOTFOUND;
+        
+        -- Determine Class based on marks
+        IF v_marks BETWEEN 990 AND 1500 THEN
+            v_class := 'Distinction';
+        ELSIF v_marks BETWEEN 900 AND 989 THEN
+            v_class := 'First Class';
+        ELSIF v_marks BETWEEN 825 AND 899 THEN
+            v_class := 'Higher Second Class';
+        ELSE
+            v_class := 'Fail';
+        END IF;
+        
+        INSERT INTO Result VALUES (v_roll, v_name, v_class);
+    END LOOP;
+    CLOSE stud_cur;
+    
+    DBMS_OUTPUT.PUT_LINE('Student grades inserted into Result table successfully.');
+END;
+/
+
+
+
+
+
+
+
+SET SERVEROUTPUT ON;
+
+BEGIN
+    proc_Grade;
+END;
+/
+
+SELECT * FROM Result;
