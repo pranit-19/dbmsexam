@@ -1,0 +1,111 @@
+use OrderDB
+
+
+db.createCollection("Order")
+
+
+db.Order.insertMany([
+  { cus_id: "A1", amount: 400, status: "P" },
+  { cus_id: "B1", amount: 300, status: "D" },
+  { cus_id: "A1", amount: 200, status: "F" },
+  { cus_id: "C1", amount: 200, status: "F" },
+  { cus_id: "B1", amount: 700, status: "P" },
+  { cus_id: "B1", amount: 800, status: "P" }
+])
+
+
+
+var mapFunction = function() {
+  if (this.status == "P") {
+    emit(this.cus_id, this.amount);
+  }
+};
+
+var reduceFunction = function(key, values) {
+  return Array.sum(values);
+};
+
+db.Order.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "sum_amount_pending" }
+)
+
+
+db.sum_amount_pending.find().pretty()
+
+
+
+
+
+
+
+var mapFunction = function() {
+  emit(this.cus_id, this.amount);
+};
+
+var reduceFunction = function(key, values) {
+  var total = Array.sum(values);
+  var avg = total / values.length;
+  return avg;
+};
+
+db.Order.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "avg_amount_customer" }
+)
+
+
+db.avg_amount_customer.find().pretty()
+
+
+
+
+
+
+var mapFunction = function() {
+  emit(this.cus_id, this.amount);
+};
+
+var reduceFunction = function(key, values) {
+  return Math.min.apply(null, values);
+};
+
+db.Order.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "min_amount_customer" }
+)
+
+db.min_amount_customer.find().pretty()
+
+
+
+
+
+
+
+
+
+
+
+var mapFunction = function() {
+  if (this.status == "F") {
+    emit(this.cus_id, this.amount);
+  }
+};
+
+var reduceFunction = function(key, values) {
+  return Math.max.apply(null, values);
+};
+
+db.Order.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "max_amount_failed" }
+)
+
+
+db.max_amount_failed.find().pretty()
+
